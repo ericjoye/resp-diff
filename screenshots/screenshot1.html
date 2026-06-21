@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resp Diff — Screenshot Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0f1a;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 40px;
+  }
+  .browser-chrome {
+    width: 900px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+  }
+  .browser-bar {
+    background: #16161e;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .browser-dots { display: flex; gap: 6px; }
+  .browser-dots span { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #febc2e; }
+  .dot-green { background: #28c840; }
+  .browser-url {
+    flex: 1;
+    background: #0f0f1a;
+    border-radius: 8px;
+    padding: 6px 14px;
+    color: #8888a0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .devtools-label {
+    background: #2a2a3c;
+    color: #a1a1aa;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .page-bg {
+    background: #ffffff;
+    padding: 20px 30px;
+    position: relative;
+    min-height: 100px;
+  }
+  .page-bg h1 { color: #1a1a2e; font-size: 18px; }
+  /* DevTools Panel */
+  .devtools {
+    display: flex;
+    height: 420px;
+    background: #1e1e2e;
+    border-top: 2px solid #333;
+  }
+  .dt-sidebar {
+    width: 280px;
+    background: #16161e;
+    border-right: 1px solid #2a2a3c;
+    display: flex;
+    flex-direction: column;
+  }
+  .dt-sidebar-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid #2a2a3c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dt-sidebar-header .title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e4e4e7;
+    flex: 1;
+  }
+  .dt-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: none;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .dt-btn.primary { background: #3b82f6; color: white; }
+  .dt-btn.secondary { background: #2a2a3c; color: #a1a1aa; }
+  .dt-btn.danger { background: #ef4444; color: white; }
+  .dt-btn.warning { background: #f59e0b; color: #000; }
+  .snapshot-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .snapshot-list::-webkit-scrollbar { width: 4px; }
+  .snapshot-list::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  .snapshot-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .snapshot-item:hover { background: #1e1e2e; }
+  .snapshot-item.selected { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); }
+  .snapshot-item .dot { font-size: 10px; }
+  .snapshot-item .dot.empty { color: #444; }
+  .snapshot-item .dot.filled { color: #3b82f6; }
+  .snapshot-item .method {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    min-width: 36px;
+    text-align: center;
+  }
+  .snapshot-item .method.get { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .snapshot-item .method.post { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .snapshot-item .url {
+    font-size: 11px;
+    color: #a1a1aa;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .snapshot-item .status {
+    font-size: 10px;
+    color: #666;
+  }
+  .dt-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .dt-toolbar {
+    padding: 8px 12px;
+    border-bottom: 1px solid #2a2a3c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dt-toolbar .info {
+    font-size: 11px;
+    color: #666;
+    flex: 1;
+  }
+  .diff-area {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .diff-panel {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+  }
+  .diff-panel::-webkit-scrollbar { width: 4px; }
+  .diff-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  .diff-panel:first-child { border-right: 1px solid #2a2a3c; }
+  .diff-panel .panel-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2a2a3c;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .diff-panel .panel-header .badge {
+    background: #2a2a3c;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    color: #a1a1aa;
+  }
+  .json-line {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    padding: 1px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .json-line .key { color: #c084fc; }
+  .json-line .string { color: #86efac; }
+  .json-line .number { color: #60a5fa; }
+  .json-line .boolean { color: #fbbf24; }
+  .json-line .null { color: #666; }
+  .json-line.added { background: rgba(34,197,94,0.12); margin: 0 -12px; padding: 1px 12px; }
+  .json-line.removed { background: rgba(239,68,68,0.12); margin: 0 -12px; padding: 1px 12px; }
+  .json-line .marker { display: inline-block; width: 14px; margin-right: 4px; font-weight: bold; }
+  .json-line.added .marker { color: #22c55e; }
+  .json-line.removed .marker { color: #ef4444; }
+  .diff-summary {
+    padding: 6px 12px;
+    background: #16161e;
+    border-top: 1px solid #2a2a3c;
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+  }
+  .diff-summary .stat { display: flex; align-items: center; gap: 4px; }
+  .diff-summary .stat .num { font-weight: 700; }
+  .diff-summary .stat.added .num { color: #22c55e; }
+  .diff-summary .stat.removed .num { color: #ef4444; }
+  .diff-summary .stat.changed .num { color: #f59e0b; }
+</style>
+</head>
+<body>
+<div class="browser-chrome">
+  <div class="browser-bar">
+    <div class="browser-dots">
+      <span class="dot-red"></span>
+      <span class="dot-yellow"></span>
+      <span class="dot-green"></span>
+    </div>
+    <div class="browser-url">
+      <span>🔒</span>
+      <span>jsonplaceholder.typicode.com/</span>
+    </div>
+    <div class="devtools-label">DevTools</div>
+  </div>
+  <div class="page-bg">
+    <h1>JSONPlaceholder - Free Fake REST API</h1>
+  </div>
+  <div class="devtools">
+    <div class="dt-sidebar">
+      <div class="dt-sidebar-header">
+        <div class="title">📡 Captured Requests</div>
+        <button class="dt-btn danger">Clear All</button>
+      </div>
+      <div class="snapshot-list">
+        <div class="snapshot-item">
+          <span class="dot empty">○</span>
+          <span class="method get">GET</span>
+          <span class="url">/posts</span>
+          <span class="status">200</span>
+        </div>
+        <div class="snapshot-item selected">
+          <span class="dot filled">●</span>
+          <span class="method get">GET</span>
+          <span class="url">/posts/1</span>
+          <span class="status">200</span>
+        </div>
+        <div class="snapshot-item">
+          <span class="dot empty">○</span>
+          <span class="method get">GET</span>
+          <span class="url">/posts/1/comments</span>
+          <span class="status">200</span>
+        </div>
+        <div class="snapshot-item selected">
+          <span class="dot filled">●</span>
+          <span class="method post">POST</span>
+          <span class="url">/posts</span>
+          <span class="status">201</span>
+        </div>
+        <div class="snapshot-item">
+          <span class="dot empty">○</span>
+          <span class="method get">GET</span>
+          <span class="url">/users/1</span>
+          <span class="status">200</span>
+        </div>
+        <div class="snapshot-item">
+          <span class="dot empty">○</span>
+          <span class="method get">GET</span>
+          <span class="url">/todos?_limit=5</span>
+          <span class="status">200</span>
+        </div>
+        <div class="snapshot-item">
+          <span class="dot empty">○</span>
+          <span class="method put">PUT</span>
+          <span class="url">/posts/1</span>
+          <span class="status">200</span>
+        </div>
+        <div class="snapshot-item">
+          <span class="dot empty">○</span>
+          <span class="method get">GET</span>
+          <span class="url">/albums/1/photos</span>
+          <span class="status">200</span>
+        </div>
+      </div>
+    </div>
+    <div class="dt-main">
+      <div class="dt-toolbar">
+        <button class="dt-btn primary">Diff</button>
+        <button class="dt-btn secondary">Swap</button>
+        <div class="info">Comparing: <strong style="color:#e4e4e7;">GET /posts/1</strong> → <strong style="color:#e4e4e7;">POST /posts</strong></div>
+      </div>
+      <div class="diff-area">
+        <div class="diff-panel">
+          <div class="panel-header">
+            ● GET /posts/1
+            <span class="badge">Snapshot A</span>
+          </div>
+          <div class="json-line">{" <span class="key">userId</span>": <span class="number">1</span>,</div>
+          <div class="json-line">{" <span class="key">id</span>": <span class="number">1</span>,</div>
+          <div class="json-line removed"><span class="marker">-</span>{" <span class="key">title</span>": "<span class="string">sunt aut facere repellat provident</span>",</div>
+          <div class="json-line">{" <span class="key">body</span>": "<span class="string">quia et suscipit suscipit recusandae consequuntur expedita et cum reprehenderit molestiae ut ut quas totam nostrum rerum est autem sunt rem eveniet architecto</span>"}</div>
+          <div class="json-line">}</div>
+        </div>
+        <div class="diff-panel">
+          <div class="panel-header">
+            ● POST /posts
+            <span class="badge">Snapshot B</span>
+          </div>
+          <div class="json-line">{" <span class="key">userId</span>": <span class="number">1</span>,</div>
+          <div class="json-line added"><span class="marker">+</span>{" <span class="key">id</span>": <span class="number">101</span>,</div>
+          <div class="json-line added"><span class="marker">+</span>{" <span class="key">title</span>": "<span class="string">New Post Title</span>",</div>
+          <div class="json-line">{" <span class="key">body</span>": "<span class="string">quia et suscipit suscipit recusandae consequuntur expedita et cum reprehenderit molestiae ut ut quas totam nostrum rerum est autem sunt rem eveniet architecto</span>"}</div>
+          <div class="json-line">}</div>
+        </div>
+      </div>
+      <div class="diff-summary">
+        <div class="stat added"><span class="num">2</span> added</div>
+        <div class="stat removed"><span class="num">1</span> removed</div>
+        <div class="stat changed"><span class="num">0</span> changed</div>
+        <div style="flex:1"></div>
+        <div style="color: #666;">3 differences total</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
